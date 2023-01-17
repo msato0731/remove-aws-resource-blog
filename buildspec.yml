@@ -1,0 +1,25 @@
+version: 0.2
+env:
+  secrets-manager:
+    DOCKERHUB_USER: $DOCKER_HUB_SECRET_ARN:username
+    DOCKERHUB_PASS: $DOCKER_HUB_SECRET_ARN:password
+phases:
+  pre_build:
+    commands:
+      # 一時的なAWS認証情報の取得
+      - TEMP_ROLE=$(aws sts assume-role --role-arn $ASSUME_ROLE_ARN --role-session-name aws-nuke)
+      - export TEMP_ROLE
+      - export AWS_ACCESS_KEY_ID=$(echo "${TEMP_ROLE}" | jq -r '.Credentials.AccessKeyId')
+      - export AWS_SECRET_ACCESS_KEY=$(echo "${TEMP_ROLE}" | jq -r '.Credentials.SecretAccessKey')
+      - export AWS_SESSION_TOKEN=$(echo "${TEMP_ROLE}" | jq -r '.Credentials.SessionToken')
+      # DockerHub へのログイン
+      - echo Logging in to Docker Hub...
+      - echo $DOCKERHUB_PASS | docker login -u $DOCKERHUB_USER --password-stdin
+  build:
+    commands:
+      - |
+        if [ $AWS_NUKE_DRY_RUN = "false" ]; then
+          docker-compose run aws-nuke --no-dry-run
+        else
+          docker-compose run aws-nuke
+        fi

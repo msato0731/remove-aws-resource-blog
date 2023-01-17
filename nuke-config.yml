@@ -1,0 +1,72 @@
+regions:
+  - ap-northeast-1
+  - global
+
+account-blocklist:
+  - "000000000000" # dummy
+
+resource-types:
+  excludes:
+    # 東京リージョンが対応しないサービスでERRORやWARNが出るサービスを除外(2022/12/23)
+    # 実行結果のノイズになるため
+    - FMSPolicy
+    - FMSNotificationChannel
+    - GlobalAccelerator
+    - GlobalAcceleratorListener
+    - GlobalAcceleratorEndpointGroup
+    - WorkLinkFleet
+    - MobileProject
+    - SESReceiptRuleSet
+    - SESReceiptFilter
+    # スキャン時間が長くなるため除外
+    - S3Object
+    # ログインに使うリソースを一旦除外
+    - IAMRole
+    - IAMRolePolicy
+    - IAMRolePolicyAttachment
+
+accounts:
+  "111111111111": # アカウントIDを書き換える
+    presets:
+      - "remove-aws-resource-pipeline"
+
+presets:
+  remove-aws-resource-pipeline:
+      filters:
+        CodeBuildProject:
+        - type: exact
+          property: tag:System
+          value: "remove-aws-resource-pipeline"
+        CodePipelinePipeline:
+        - type: glob
+          value: "RemoveAwResourcePipeline*"
+        KMSAlias:
+        - type: glob
+          value: "alias/codepipeline-removeawresourcepipeline*"
+        KMSKey:
+        - type: exact
+          property: tag:System
+          value: "remove-aws-resource-pipeline"
+        S3Bucket:
+        - type: exact
+          property: tag:System
+          value: "remove-aws-resource-pipeline"
+        CloudFormationStack:
+        - type: exact
+          property: tag:System
+          value: "remove-aws-resource-pipeline"
+        CloudWatchLogsLogGroup:
+        - type: glob
+          value: "/aws/codebuild/remove-resource-pipeline/*"
+        IAMRole:
+        - type: exact
+          property: tag:System
+          value: "remove-aws-resource-pipeline"
+        IAMRolePolicy:
+        - type: exact
+          property: tag:role:System
+          value: "remove-aws-resource-pipeline"
+        IAMRolePolicyAttachment:
+        - type: exact
+          property: tag:role:System
+          value: "remove-aws-resource-pipeline"
