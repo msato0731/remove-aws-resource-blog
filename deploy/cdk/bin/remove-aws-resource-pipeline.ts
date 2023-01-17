@@ -10,4 +10,3 @@ new RemoveAwResourcePipelineStack(app, 'RemoveAwResourcePipeline', {
 });
 
 cdk.Tags.of(app).add('System', 'remove-aws-resource-pipeline');
-cdk.Tags.of(app).add('remove', 'false');
